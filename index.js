@@ -50,6 +50,10 @@ function init() {
 
     if (uid) {
       sockets[uid] = socket;
+
+      socket.on('disconnect', () => {
+        delete sockets[uid];
+      });
     }
   });
 
@@ -73,6 +77,7 @@ function init() {
           const socket = sockets[_id];
 
           if (socket) {
+            console.log('emit', _id);
             socket.emit('ticker', { ticker, user: userInfo });
           }
         }

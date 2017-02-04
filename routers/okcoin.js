@@ -7,26 +7,84 @@ import Stock from '../okcoin/rest/Stock';
 const router = new KoaRouter();
 
 router
+  .get('/api/user', function* (next) {
+    const params = queryString.parse(this.request.querystring);
+
+    const { name } = params;
+
+    let user = yield User.findOne({ name });
+
+    user = user.toObject();
+
+    if (user) {
+      this.body = {
+        code: 0,
+        data: {
+          ...user,
+          uid: user._id
+        }
+      }
+    }
+    else {
+      this.body = {
+        code: 404,
+        data: 'no user'
+      }
+    }
+  })
+
+  .get('/api/currentUser', function* (next) {
+    const uid = this.cookies.get('uid');
+
+    yield next;
+
+    if (uid) {
+      let user = yield User.findById(uid);
+
+      user = user.toObject();
+
+      if (user) {
+        this.body = {
+          code: 0,
+          data: {
+            ...user,
+            uid: user._id
+          }
+        };
+
+        return;
+      }
+    }
+
+    this.body = {
+      code: 404,
+      message: 'no user'
+    };
+  })
+
   .get('/api/userinfo', function* (next) {
     const uid = this.cookies.get('uid');
 
+    yield next;
+
     if (uid) {
-      const user = yield User.findById(uid);
+      let user = yield User.findById(uid);
+
+      user = user.toObject();
 
       if (user) {
         const stock = new Stock(user);
 
         const data = yield stock.getUserInfo();
 
-        yield next;
-
         this.body = {
           code: 0,
-          data
+          data: {
+            ...user,
+            uid: user._id
+          }
         };
       }
-
-      return;
     }
 
     this.body = {
@@ -40,13 +98,21 @@ router
 
     const { name } = params;
 
-    const user = yield User.findOne({ name });
+    let user = yield User.findOne({ name });
+
+    user = user.toObject();
 
     yield next;
 
     this.cookies.set('uid', user._id);
 
-    this.body = user;
+    this.body = {
+      code: 0,
+      data: {
+        ...user,
+        uid: user._id
+      }
+    };
   })
 
   .get('/api/logout', function* (next) {
@@ -58,7 +124,9 @@ router
       this.cookies.set('uid', uid, { expires });
     }
 
-    this.body = { uid };
+    this.body = {
+      code: 0
+    };
   });
 
 export default router;
