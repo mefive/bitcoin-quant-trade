@@ -2,6 +2,8 @@ import KoaRouter from 'koa-router';
 import queryString from 'query-string';
 
 import User from '../okcoin/models/User';
+import SimulateUserInfo from '../okcoin/models/SimulateUserInfo';
+
 import Stock from '../okcoin/rest/Stock';
 
 const router = new KoaRouter();
@@ -14,9 +16,9 @@ router
 
     let user = yield User.findOne({ name });
 
-    user = user.toObject();
-
     if (user) {
+      user = user.toObject();
+
       this.body = {
         code: 0,
         data: {
@@ -96,23 +98,77 @@ router
   .get('/api/login', function* (next) {
     const params = queryString.parse(this.request.querystring);
 
-    const { name } = params;
+    yield next;
+
+    const { name, apiKey, secretKey, simulate } = params;
+
+    if (simulate) {
+      let simulateUserInfo = yield SimulateUserInfo.findOne({ name });
+
+      if (!simulateUserInfo) {
+        simulateUserInfo = new SimulateUserInfo({ name });
+        yield simulateUserInfo.save();
+      }
+    }
 
     let user = yield User.findOne({ name });
 
-    user = user.toObject();
+    if (user) {
+      yield user.update({ simulate });
 
-    yield next;
+      user = user.toObject();
 
-    this.cookies.set('uid', user._id);
+      this.cookies.set('uid', user._id);
 
-    this.body = {
-      code: 0,
-      data: {
-        ...user,
-        uid: user._id
+      this.body = {
+        code: 0,
+        data: {
+          ...user,
+          uid: user._id
+        }
+      };
+    }
+    else if (!apiKey || !secretKey) {
+      this.body = {
+        code: 400,
+        message: 'need apiKey and secretKey'
+      };
+    }
+    else {
+      user = new User({ name, apiKey, secretKey, simulate });
+
+      const stock = new Stock(user);
+
+      let data;
+
+      if (!simulate) {
+        try {
+          data = yield stock.getUserInfo();
+        }
+        catch (e) {
+          this.body = {
+            code: 404,
+            message: 'no user'
+          };
+
+          return;
+        }
       }
-    };
+
+      user = yield user.save();
+
+      user = user.toObject();
+
+      this.cookies.set('uid', user._id);
+
+      this.body = {
+        code: 0,
+        user: {
+          ...user,
+          uid: user._id
+        }
+      };
+    }
   })
 
   .get('/api/logout', function* (next) {

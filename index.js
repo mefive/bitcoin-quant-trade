@@ -10,6 +10,7 @@ import queryString from 'query-string';
 
 import okcoinRouter from './routers/okcoin';
 import User from './okcoin/models/User';
+import SimulateUserInfo from './okcoin/models/SimulateUserInfo';
 
 mongoose.Promise = global.Promise;
 
@@ -69,15 +70,20 @@ function init() {
 
           const stock = new Stock(user);
 
-          const [ticker, userInfo] = yield [
-            stock.getTicker(),
-            stock.getUserInfo()
-          ];
+          const ticker = yield stock.getTicker();
+
+          let userInfo = {};
+
+          if (!user.simulate) {
+            userInfo = yield stock.getUserInfo();
+          }
+          else {
+            userInfo = yield SimulateUserInfo.findOne({ name: user.name });
+          }
           
           const socket = sockets[_id];
 
           if (socket) {
-            console.log('emit', _id);
             socket.emit('ticker', { ticker, user: userInfo });
           }
         }

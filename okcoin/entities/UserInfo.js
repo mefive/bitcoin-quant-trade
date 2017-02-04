@@ -1,7 +1,7 @@
 import Entity from './Entity';
 
 class UserInfo extends Entity {
-  constructor(data) {
+  constructor(data = {}) {
     super({
       asset: {
         net: 0,
