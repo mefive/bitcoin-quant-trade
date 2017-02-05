@@ -8,7 +8,7 @@ import pick from 'lodash/pick';
 import mongoose from 'mongoose';
 import queryString from 'query-string';
 
-import okcoinRouter from './routers/okcoin';
+import okcoinRouter from './okcoin/router';
 import User from './okcoin/models/User';
 import SimulateUserInfo from './okcoin/models/SimulateUserInfo';
 
@@ -65,26 +65,28 @@ function init() {
       try {
         const users = yield User.find();
 
-        for (const user of users) {
-          const { _id } = user;
+        if (users) {
+          for (const user of users) {
+            const { _id } = user;
 
-          const stock = new Stock(user);
+            const stock = new Stock(user);
 
-          const ticker = yield stock.getTicker();
+            const ticker = yield stock.getTicker();
 
-          let userInfo = {};
+            let userInfo = {};
 
-          if (!user.simulate) {
-            userInfo = yield stock.getUserInfo();
-          }
-          else {
-            userInfo = yield SimulateUserInfo.findOne({ name: user.name });
-          }
-          
-          const socket = sockets[_id];
+            if (!user.simulate) {
+              userInfo = yield stock.getUserInfo();
+            }
+            else {
+              userInfo = yield SimulateUserInfo.findOne({ name: user.name });
+            }
+            
+            const socket = sockets[_id];
 
-          if (socket) {
-            socket.emit('ticker', { ticker, user: userInfo });
+            if (socket) {
+              socket.emit('ticker', { ticker, user: userInfo });
+            }
           }
         }
       }

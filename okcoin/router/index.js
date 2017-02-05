@@ -1,10 +1,10 @@
 import KoaRouter from 'koa-router';
 import queryString from 'query-string';
 
-import User from '../okcoin/models/User';
-import SimulateUserInfo from '../okcoin/models/SimulateUserInfo';
+import User from '../models/User';
+import SimulateUserInfo from '../models/SimulateUserInfo';
 
-import Stock from '../okcoin/rest/Stock';
+import Stock from '../rest/Stock';
 
 const router = new KoaRouter();
 
