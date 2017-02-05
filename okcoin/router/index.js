@@ -9,36 +9,9 @@ import Stock from '../rest/Stock';
 const router = new KoaRouter();
 
 router
+  // 检查登录
   .get('/api/user', function* (next) {
-    const params = queryString.parse(this.request.querystring);
-
-    const { name } = params;
-
-    let user = yield User.findOne({ name });
-
-    if (user) {
-      user = user.toObject();
-
-      this.body = {
-        code: 0,
-        data: {
-          ...user,
-          uid: user._id
-        }
-      }
-    }
-    else {
-      this.body = {
-        code: 404,
-        data: 'no user'
-      }
-    }
-  })
-
-  .get('/api/currentUser', function* (next) {
     const uid = this.cookies.get('uid');
-
-    yield next;
 
     if (uid) {
       let user = yield User.findById(uid);
@@ -53,21 +26,27 @@ router
             uid: user._id
           }
         };
-
-        return;
+      }
+      else {
+        this.body = {
+          code: 404,
+          message: 'no user in db'
+        };
       }
     }
-
-    this.body = {
-      code: 404,
-      message: 'no user'
-    };
-  })
-
-  .get('/api/userinfo', function* (next) {
-    const uid = this.cookies.get('uid');
+    else {
+      this.body = {
+        code: 403,
+        message: 'no auth'
+      };
+    }
 
     yield next;
+  })
+
+  // 获取 user 账务信息
+  .get('/api/userinfo', function* () {
+    const uid = this.cookies.get('uid');
 
     if (uid) {
       let user = yield User.findById(uid);
@@ -77,45 +56,50 @@ router
       if (user) {
         const stock = new Stock(user);
 
-        const data = yield stock.getUserInfo();
+        try {
+          const data = yield stock.getUserInfo();
 
+          this.body = {
+            code: 0,
+            data: {
+              ...user,
+              uid: user._id
+            }
+          };
+        }
+        catch (e) {
+          this.body = {
+            code: 404,
+            message: 'no user in okcoin'
+          };
+        }
+      }
+      else {
         this.body = {
-          code: 0,
-          data: {
-            ...user,
-            uid: user._id
-          }
+          code: 404,
+          message: 'no user in db'
         };
       }
     }
-
-    this.body = {
-      code: 404,
-      message: 'no user'
-    };
-  })
-
-  .get('/api/login', function* (next) {
-    const params = queryString.parse(this.request.querystring);
-
-    yield next;
-
-    const { name, apiKey, secretKey, simulate } = params;
-
-    if (simulate) {
-      let simulateUserInfo = yield SimulateUserInfo.findOne({ name });
-
-      if (!simulateUserInfo) {
-        simulateUserInfo = new SimulateUserInfo({ name });
-        yield simulateUserInfo.save();
-      }
+    else {
+      this.body = {
+        code: 403,
+        message: 'no auth'
+      };
     }
 
-    let user = yield User.findOne({ name });
+    yield next;
+  })
+
+  // 登录
+  .get('/api/login', function* (next) {
+    const params = this.request.query;
+
+    const { name, password } = params;
+
+    let user = yield User.findOne({ name, password });
 
     if (user) {
-      yield user.update({ simulate });
-
       user = user.toObject();
 
       this.cookies.set('uid', user._id);
@@ -128,61 +112,64 @@ router
         }
       };
     }
-    else if (!apiKey || !secretKey) {
+    else {
       this.body = {
-        code: 400,
-        message: 'need apiKey and secretKey'
-      };
+        code: 404,
+        message: 'no user in db'
+      }
+    }
+
+    yield next;
+  })
+
+  // 注册
+  .post('/api/user', function* (next) {
+    const params = this.request.body;
+
+    const { name, password, apiKey, secretKey, simulate } = params;
+
+    let user = yield User.findOne({ name });
+
+    if (user) {
+      this.body = {
+        code: 500,
+        message: 'has user in db'
+      }
     }
     else {
-      user = new User({ name, apiKey, secretKey, simulate });
+      user = new User({ name, password, apiKey, secretKey, simulate });
 
       const stock = new Stock(user);
 
-      let data;
+      try {
+        const userinfo = yield stock.getUserInfo();
+      }
+      catch (e) {
+        this.body = {
+          code: 1001,
+          message: 'no user in okcoin'
+        };
 
-      if (!simulate) {
-        try {
-          data = yield stock.getUserInfo();
-        }
-        catch (e) {
-          this.body = {
-            code: 404,
-            message: 'no user'
-          };
+        yield next;
 
-          return;
-        }
+        return;
       }
 
-      user = yield user.save();
+      yield user.save();
 
-      user = user.toObject();
+      if (simulate) {
+        const simulateUserInfo
+          = new SimulateUserInfo({ name, uid: user._id });
 
-      this.cookies.set('uid', user._id);
+        yield simulateUserInfo.save();
+      }
 
       this.body = {
-        code: 0,
-        user: {
-          ...user,
-          uid: user._id
-        }
+        code: 0
       };
     }
-  })
 
-  .get('/api/logout', function* (next) {
-    const uid = this.cookies.get('uid');
-    const expires = new Date();
-    expires.setYear(1990);
-
-    if (uid) {
-      this.cookies.set('uid', uid, { expires });
-    }
-
-    this.body = {
-      code: 0
-    };
+    yield next;
   });
 
 export default router;

@@ -1,5 +1,6 @@
 import http from 'http';
 import Koa from 'koa';
+import bodyParser from 'koa-body-parser';
 import socketIo from 'socket.io';
 import Stock from './okcoin/rest/Stock';
 import co from 'co';
@@ -37,6 +38,7 @@ function init() {
   });
 
   app
+    .use(bodyParser())
     .use(okcoinRouter.routes())
     .use(okcoinRouter.allowedMethods());
 
