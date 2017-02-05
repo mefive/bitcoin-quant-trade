@@ -1,3 +1,7 @@
 # bitcoin-quant-trade
 Bitcoin quant trade backend
-## run
+## How to run in dev mode
+```
+sudo npm i nodemon -g
+npm run dev
+```
