@@ -97,20 +97,28 @@ router
 
     const { name, password } = params;
 
-    let user = yield User.findOne({ name, password });
+    let user = yield User.findOne({ name });
 
     if (user) {
-      user = user.toObject();
+      if (user.password === password) {
+        user = user.toObject();
 
-      this.cookies.set('uid', user._id);
+        this.cookies.set('uid', user._id);
 
-      this.body = {
-        code: 0,
-        data: {
-          ...user,
-          uid: user._id
-        }
-      };
+        this.body = {
+          code: 0,
+          data: {
+            ...user,
+            uid: user._id
+          }
+        };
+      }
+      else {
+        this.body = {
+          code: 500,
+          message: 'password unmatched'
+        };
+      }
     }
     else {
       this.body = {
