@@ -1,6 +1,6 @@
 import http from 'http';
 import Koa from 'koa';
-import bodyParser from 'koa-body-parser';
+import bodyParser from 'koa-bodyparser';
 import socketIo from 'socket.io';
 import Stock from './okcoin/rest/Stock';
 import co from 'co';
@@ -24,6 +24,8 @@ co(function* () {
 function init() {
   const app = new Koa();
 
+  app.use(bodyParser());
+
   app.use(function* (next) {
     try {
       yield next;
@@ -38,7 +40,6 @@ function init() {
   });
 
   app
-    .use(bodyParser())
     .use(okcoinRouter.routes())
     .use(okcoinRouter.allowedMethods());
 

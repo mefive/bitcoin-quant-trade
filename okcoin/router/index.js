@@ -140,7 +140,7 @@ router
 
     if (user) {
       this.body = {
-        code: 500,
+        code: 1002,
         message: 'has user in db'
       }
     }
