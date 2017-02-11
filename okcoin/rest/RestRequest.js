@@ -17,8 +17,8 @@ class RestRequest {
     }
   }
 
-  *get(api, params) {
-    const data = yield requestPromise({
+  async get(api, params) {
+    const data = await requestPromise({
       method: 'GET',
       uri: `${this.prefix}/${api}`,
       qs: params,
@@ -30,8 +30,8 @@ class RestRequest {
     return data;
   }
 
-  *post(api, params) {
-    const data = yield requestPromise({
+  async post(api, params) {
+    const data = await requestPromise({
       method: 'POST',
       uri: `${this.prefix}/${api}`,
       form: {

@@ -4,7 +4,7 @@ export default mongoose.model('SimulateUserInfo', new mongoose.Schema({
   asset: {
     total: {
       type: Number,
-      default: 100      
+      default: 1000      
     }
   },
   free: {
@@ -14,7 +14,7 @@ export default mongoose.model('SimulateUserInfo', new mongoose.Schema({
     },
     cny: {
       type: Number,
-      default: 100
+      default: 1000
     }
   },
   freezed: {

@@ -4,6 +4,7 @@ import UserInfo from '../entities/UserInfo';
 
 const TICKER = 'ticker.do';
 const USER_INFO = 'userinfo.do';
+const K_LINE = 'kline.do';
 
 class Stock {
   constructor(user) {
@@ -18,17 +19,38 @@ class Stock {
     );
   }
 
-  *getTicker() {
-    const data = yield* this.restRequest.get(
+  async getTicker() {
+    const data = await this.restRequest.get(
       TICKER,
        { symbol: 'btc_cny', }
     );
 
-    return new Ticker(data.ticker);
+    const { ticker } = data;
+
+    for (const key in ticker) {
+      ticker[key] = +ticker[key];
+    }
+
+    return new Ticker(ticker);
   }
 
-  *getUserInfo() {
-    const data = yield* this.restRequest.post(
+  async getKLine(type = '1min', start) {
+    let since;
+
+    if (start) {
+      since = +start;
+    }
+
+    const data = await this.restRequest.get(
+      K_LINE,
+      { symbol: 'btc_cny', type, since, size: 50 }
+    );
+
+    return data.map(k => k[4]);
+  }
+
+  async getUserInfo() {
+    const data = await this.restRequest.post(
       USER_INFO,
       { 'api_key': this.user.apiKey }
     );

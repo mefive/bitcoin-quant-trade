@@ -1,5 +1,6 @@
 import isPlainObject from 'lodash/isPlainObject';
 import isArray from 'lodash/isArray';
+import defaultsDeep from 'lodash/defaultsDeep';
 
 class Entity {
   constructor(data = {}) {
@@ -7,6 +8,8 @@ class Entity {
       key =>
         this.set(key, data[key])
     );
+
+    this.data = 
   }
 
   update(data) {

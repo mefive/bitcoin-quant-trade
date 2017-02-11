@@ -1,17 +1,17 @@
-import Entity from './Entity';
+import defaultsDeep from 'lodash/defaultsDeep';
 
-class Ticker extends Entity {
+class Ticker {
+  static defaultData = {
+    buy: 0,
+    high: 0,
+    last: 0,
+    low: 0,
+    sell: 0,
+    vol: 0
+  }
+
   constructor(data) {
-    super({
-      buy: 0,
-      high: 0,
-      last: 0,
-      low: 0,
-      sell: 0,
-      vol: 0
-    });
-
-    this.update(data);
+    this.data = defaultsDeep(data, Ticker.defaultData);
   }
 }
 
