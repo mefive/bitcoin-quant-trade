@@ -27,10 +27,12 @@ class Strategy {
     // 5 上击穿 10，卖
     else if (lastMean7 > lastMean30 && mean7 <= mean30) {
       await this.sell(price);
+      // await this.buy(price);
     }
     else {
-      // this.logInfo('ON ORDER', price);
+      this.logInfo('ON ORDER', price);
       // await this.sell(price);
+      // await this.buy(price);
     }
   }
 

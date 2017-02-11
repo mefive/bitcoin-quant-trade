@@ -1,5 +1,7 @@
 import defaultsDeep from 'lodash/defaultsDeep';
 
+import Order from '../models/Order';
+
 class UserInfo {
   static defaultData = {
     asset: {
@@ -65,6 +67,8 @@ class UserInfo {
       });
 
       await this.save();
+
+      await this.createOrder(price, amount);
     }
   }
 
@@ -93,7 +97,21 @@ class UserInfo {
       });
 
       await this.save();
+
+      await this.createOrder(price, -amount);
     }
+  }
+
+  async createOrder(price, amount) {
+    const user = this.data;
+
+    const { name, uid } = user;
+
+    const order = new Order({
+      name, uid, price, amount
+    });
+
+    await order.save();
   }
 }
 
