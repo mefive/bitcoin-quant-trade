@@ -108,7 +108,7 @@ class UserInfo {
     const { name, uid } = user;
 
     const order = new Order({
-      name, uid, price, amount
+      name, uid, price, amount, ts: +(new Date())
     });
 
     await order.save();

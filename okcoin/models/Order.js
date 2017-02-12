@@ -6,6 +6,7 @@ export default mongoose.model(
 		name: String,
 		uid: String,
 		price: Number,
-		amount: Number
+		amount: Number,
+		ts: Number
 	})
 );

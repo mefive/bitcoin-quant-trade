@@ -13,6 +13,7 @@ import okcoinRouter from './okcoin/router';
 import UserInfo from './okcoin/entities/UserInfo';
 
 import User from './okcoin/models/User';
+import Order from './okcoin/models/Order';
 import SimulateUserInfo from './okcoin/models/SimulateUserInfo';
 import Strategy from './quant/Strategy';
 
@@ -111,7 +112,9 @@ function init() {
 
             const strategy = new Strategy(userInfo);
 
-            await strategy.run(kLine, ticker.data.last);
+            const lastOrder = (await Order.find({ uid: _id }).sort({ ts: -1 }))[0]//[0];
+
+            await strategy.run(kLine, ticker.data.last, lastOrder);
           }
         }
       }

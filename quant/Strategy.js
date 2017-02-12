@@ -2,48 +2,76 @@ import pick from 'lodash/pick';
 import ubique from 'ubique';
 import moment from 'moment';
 
+function getMean(data = [], points = 0, offset = 0) {
+  if (offset === 0) {
+    return ubique.mean(data.slice(-points));
+  }
+  else {
+    const { length } = data;
+
+    return ubique.mean(data.slice(length - (points - offset), length - 1));
+  }
+}
+
 class Strategy {
   constructor(user) {
     // 是否是模拟账户
     this.user = user;
   }
 
-  async run(data, price) {
+  async run(data, price, lastOrder) {
     const { length } = data;
 
     // 当前均值
-    const mean7 = this.mean7 = ubique.mean(data.slice(-7));
-    const mean30 = this.mean30 = ubique.mean(data.slice(-30));
+    const meanFast = this.meanFast = getMean(data, 5);
+    const meanSlow = this.meanSlow = getMean(data, 10);
 
     // 上一个均值
-    const lastMean7 = this.lastMean7 = ubique.mean(data.slice(length - 8, length - 1));
-    const lastMean30 = this.lastMean30 = ubique.mean(data.slice(length - 31, length - 1));
+    const lastMeanFast = this.lastMeanFast = getMean(data, 5, -1)
+    const lastMeanSlow = this.lastMeanSlow = getMean(data, 10, -1);
 
-    // 5 下击穿 10 ，买
-    if (lastMean7 < lastMean30 && mean7 >= mean30) {
+    // 止损
+    if (lastOrder && price < lastOrder.price * 0.96) {
+      await this.sell(price);
+      console.log('sell by cut loss');
+      return;
+    }
+
+    // 快 下击穿 慢 ，买
+    if (lastMeanFast < lastMeanSlow && meanFast >= meanSlow) {
       await this.buy(price);
       // await this.sell(price);
     }
-    // 5 上击穿 10，卖
-    else if (lastMean7 > lastMean30 && mean7 <= mean30) {
+    // 快 上击穿 慢，卖
+    else if (lastMeanFast > lastMeanSlow && meanFast <= meanSlow) {
       await this.sell(price);
       // await this.buy(price);
     }
     else {
-      this.logInfo('ON ORDER', price);
+      // this.logInfo('ON ORDER', price);
       // await this.sell(price);
       // await this.buy(price);
     }
   }
 
   async buy(price) {
-    this.logInfo('BUY', price);
-    await this.user.buyAll(price);
+    try {
+      await this.user.buyAll(price);
+      this.logInfo('BUY', price);
+    }
+    catch (e) {
+      console.log(e);
+    }
   }
 
   async sell(price) {
-    this.logInfo('SELL', price);
-    await this.user.sellAll(price)
+    try {
+      await this.user.sellAll(price);
+      this.logInfo('SELL', price);
+    }
+    catch (e) {
+      console.log(e);
+    }
   }
 
   logInfo(trade, price) {
@@ -57,12 +85,12 @@ class Strategy {
     console.log(moment().format('YYYY-MM-DD hh:mm:ss'));
 
     console.log('current');
-    console.log(this.mean7, this.mean30);
+    console.log(this.meanFast, this.meanSlow);
 
     console.log('');
 
     console.log('last');
-    console.log(this.lastMean7, this.lastMean30);
+    console.log(this.lastMeanFast, this.lastMeanSlow);
 
     console.log('');
 
