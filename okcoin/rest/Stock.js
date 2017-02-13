@@ -34,7 +34,7 @@ class Stock {
     return new Ticker(ticker);
   }
 
-  async getKLine(type = '1min', start) {
+  async getKLine(type = '5min', start) {
     let since;
 
     if (start) {

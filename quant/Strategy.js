@@ -29,15 +29,15 @@ class Strategy {
     const { length } = data;
 
     // 当前均值
-    const meanFast = this.meanFast = getMean(data, 5);
-    const meanSlow = this.meanSlow = getMean(data, 10);
+    const meanFast = this.meanFast = getMean(data, 7);
+    const meanSlow = this.meanSlow = getMean(data, 30);
 
     // 上一个均值
-    const lastMeanFast = this.lastMeanFast = getMean(data, 5, -1)
-    const lastMeanSlow = this.lastMeanSlow = getMean(data, 10, -1);
+    const lastMeanFast = this.lastMeanFast = getMean(data, 7, -1)
+    const lastMeanSlow = this.lastMeanSlow = getMean(data, 30, -1);
 
     // 止损
-    if (lastOrder && price < _.round(_.multiply(lastOrder.price, 0.96), 2)) {
+    if (lastOrder && price < _.round(_.multiply(lastOrder.price, 0.9), 2)) {
       await this.sell(price);
       console.log('sell by cut loss');
       return;

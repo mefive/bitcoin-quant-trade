@@ -85,7 +85,7 @@ async function loop() {
       console.log(e);
     }
 
-    await sleep(5000);
+    await sleep(10000);
   }
 }
 
