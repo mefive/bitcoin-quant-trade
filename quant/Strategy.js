@@ -1,15 +1,21 @@
-import pick from 'lodash/pick';
+import _ from 'lodash';
 import ubique from 'ubique';
 import moment from 'moment';
 
 function getMean(data = [], points = 0, offset = 0) {
   if (offset === 0) {
-    return ubique.mean(data.slice(-points));
+    return _.round(
+      _.mean(data.slice(-points)),
+      2
+    );
   }
   else {
     const { length } = data;
 
-    return ubique.mean(data.slice(length - (points - offset), length - 1));
+    return _.round(
+      _.mean(data.slice(length - (points - offset), length - 1)),
+      2
+    );
   }
 }
 
@@ -31,7 +37,7 @@ class Strategy {
     const lastMeanSlow = this.lastMeanSlow = getMean(data, 10, -1);
 
     // 止损
-    if (lastOrder && price < lastOrder.price * 0.96) {
+    if (lastOrder && price < _.round(_.multiply(lastOrder.price, 0.96), 2)) {
       await this.sell(price);
       console.log('sell by cut loss');
       return;

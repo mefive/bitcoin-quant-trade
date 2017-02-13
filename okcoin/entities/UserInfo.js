@@ -1,4 +1,4 @@
-import defaultsDeep from 'lodash/defaultsDeep';
+import _ from 'lodash';
 
 import Order from '../models/Order';
 
@@ -24,12 +24,12 @@ class UserInfo {
   }
 
   constructor(data = {}, Model) {
-    this.data = defaultsDeep(data, UserInfo.defaultData);
+    this.data = _.defaultsDeep(data, UserInfo.defaultData);
     this.Model = Model;
   }
 
   update(data = {}) {
-    this.data = defaultsDeep(data, this.data);
+    this.data = _.defaultsDeep(data, this.data);
   }
 
   async save() {
@@ -48,7 +48,7 @@ class UserInfo {
     const cash = data.free.cny;
     const btc = data.free.btc;
 
-    const amount = cash / price;
+    const amount = _.round(_.divide(cash, price), 10);
 
     if (amount < 0.01) {
       throw 'money not enough to buy';
@@ -59,10 +59,10 @@ class UserInfo {
       this.update({
         free: {
           cny: 0,
-          btc: amount + btc
+          btc: _.add(amount, btc)
         },
         asset: {
-          total: price * (amount + btc)
+          total: _.multiply(price, _.add(amount, btc))
         }
       });
 
@@ -88,11 +88,11 @@ class UserInfo {
     if (this.data.simulate) {
       this.update({
         free: {
-          cny: cash + price * amount,
+          cny: _.round(_.add(cash, _.multiply(price, amount)), 2),
           btc: 0
         },
         asset: {
-          total: cash + price * amount
+          total: _.round(_.add(cash, _.multiply(price, amount)), 2)
         }
       });
 
