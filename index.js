@@ -60,6 +60,8 @@ async function loop() {
                 name: user.name,
                 uid: user._id
               })).save();
+
+              continue;
             }
           }
 

@@ -45,16 +45,16 @@ class Strategy {
 
     // 快 下击穿 慢 ，买
     if (lastMeanFast < lastMeanSlow && meanFast >= meanSlow) {
-      await this.buy(price);
-      // await this.sell(price);
+      // await this.buy(price);
+      await this.sell(price);
     }
     // 快 上击穿 慢，卖
     else if (lastMeanFast > lastMeanSlow && meanFast <= meanSlow) {
-      await this.sell(price);
-      // await this.buy(price);
+      // await this.sell(price);
+      await this.buy(price);
     }
     else {
-      this.logInfo('ON ORDER', price);
+      // this.logInfo('ON ORDER', price);
       // await this.sell(price);
       // await this.buy(price);
     }

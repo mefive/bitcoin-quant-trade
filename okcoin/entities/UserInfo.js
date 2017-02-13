@@ -62,7 +62,7 @@ class UserInfo {
           btc: _.add(amount, btc)
         },
         asset: {
-          total: _.multiply(price, _.add(amount, btc))
+          total: _.round(_.multiply(price, _.add(amount, btc)), 2)
         }
       });
 
@@ -104,6 +104,7 @@ class UserInfo {
 
   async createOrder(price, amount) {
     const user = this.data;
+    console.log(user);
 
     const { name, uid } = user;
 
