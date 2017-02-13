@@ -48,12 +48,15 @@ class UserInfo {
     const cash = data.free.cny;
     const btc = data.free.btc;
 
-    const amount = _.round(_.divide(cash, price), 10);
+    let amount = _.round(_.divide(cash, price), 10);
 
     if (amount < 0.01) {
       throw 'money not enough to buy';
       return;
     }
+
+    // 手续费 0.2%
+    amount = _.subtract(amount, _.multiply(amount, 0.002));
 
     if (this.data.simulate) {
       this.update({
@@ -78,21 +81,24 @@ class UserInfo {
     const amount = data.free.btc;
     const cash = data.free.cny;
 
-    console.log('amount', amount)
-
     if (amount < 0.01) {
       throw 'btc not enough to sell';
       return;
     }
 
+    let money = _.round(_.multiply(price, amount), 2);
+
+    // 手续费 0.2%
+    money = _.round(_.subtract(money, _.multiply(money, 0.002)), 2);
+
     if (this.data.simulate) {
       this.update({
         free: {
-          cny: _.round(_.add(cash, _.multiply(price, amount)), 2),
+          cny: _.round(_.add(cash, money), 2),
           btc: 0
         },
         asset: {
-          total: _.round(_.add(cash, _.multiply(price, amount)), 2)
+          total: _.round(_.add(cash, money), 2)
         }
       });
 
@@ -104,7 +110,6 @@ class UserInfo {
 
   async createOrder(price, amount) {
     const user = this.data;
-    console.log(user);
 
     const { name, uid } = user;
 
