@@ -10,16 +10,16 @@ const router = new KoaRouter();
 
 router
   // 检查登录
-  .get('/api/user', function* (next) {
-    const uid = this.cookies.get('uid');
+  .get('/api/user', async (ctx, next) => {
+    const uid = ctx.cookies.get('uid');
 
     if (uid) {
-      let user = yield User.findById(uid);
+      let user = await User.findById(uid);
 
       user = user.toObject();
 
       if (user) {
-        this.body = {
+        ctx.body = {
           code: 0,
           data: {
             ...user,
@@ -28,28 +28,28 @@ router
         };
       }
       else {
-        this.body = {
+        ctx.body = {
           code: 404,
           message: 'no user in db'
         };
       }
     }
     else {
-      this.body = {
+      ctx.body = {
         code: 403,
         message: 'no auth'
       };
     }
 
-    yield next;
+    await next();
   })
 
   // 获取 user 账务信息
-  .get('/api/userinfo', function* () {
-    const uid = this.cookies.get('uid');
+  .get('/api/userinfo', async (ctx, next) => {
+    const uid = ctx.cookies.get('uid');
 
     if (uid) {
-      let user = yield User.findById(uid);
+      let user = await User.findById(uid);
 
       user = user.toObject();
 
@@ -57,9 +57,9 @@ router
         const stock = new Stock(user);
 
         try {
-          const data = yield stock.getUserInfo();
+          const data = await stock.getUserInfo();
 
-          this.body = {
+          ctx.body = {
             code: 0,
             data: {
               ...user,
@@ -68,44 +68,44 @@ router
           };
         }
         catch (e) {
-          this.body = {
+          ctx.body = {
             code: 404,
             message: 'no user in okcoin'
           };
         }
       }
       else {
-        this.body = {
+        ctx.body = {
           code: 404,
           message: 'no user in db'
         };
       }
     }
     else {
-      this.body = {
+      ctx.body = {
         code: 403,
         message: 'no auth'
       };
     }
 
-    yield next;
+    await next();
   })
 
   // 登录
-  .get('/api/login', function* (next) {
-    const params = this.request.query;
+  .get('/api/login', async (ctx, next) => {
+    const params = ctx.request.query;
 
     const { name, password } = params;
 
-    let user = yield User.findOne({ name });
+    let user = await User.findOne({ name });
 
     if (user) {
       if (user.password === password) {
         user = user.toObject();
 
-        this.cookies.set('uid', user._id);
+        ctx.cookies.set('uid', user._id);
 
-        this.body = {
+        ctx.body = {
           code: 0,
           data: {
             ...user,
@@ -114,32 +114,32 @@ router
         };
       }
       else {
-        this.body = {
+        ctx.body = {
           code: 500,
           message: 'password unmatched'
         };
       }
     }
     else {
-      this.body = {
+      ctx.body = {
         code: 404,
         message: 'no user in db'
       }
     }
 
-    yield next;
+    await next();
   })
 
   // 注册
-  .post('/api/user', function* (next) {
-    const params = this.request.body;
+  .post('/api/user', async (ctx, next) => {
+    const params = ctx.request.body;
 
     const { name, password, apiKey, secretKey, simulate } = params;
 
-    let user = yield User.findOne({ name });
+    let user = await User.findOne({ name });
 
     if (user) {
-      this.body = {
+      ctx.body = {
         code: 1002,
         message: 'has user in db'
       }
@@ -150,34 +150,34 @@ router
       const stock = new Stock(user);
 
       try {
-        const userinfo = yield stock.getUserInfo();
+        const userinfo = await stock.getUserInfo();
       }
       catch (e) {
-        this.body = {
+        ctx.body = {
           code: 1001,
           message: 'no user in okcoin'
         };
 
-        yield next;
+        await next();
 
         return;
       }
 
-      yield user.save();
+      await user.save();
 
       if (simulate) {
         const simulateUserInfo
           = new SimulateUserInfo({ name, uid: user._id });
 
-        yield simulateUserInfo.save();
+        await simulateUserInfo.save();
       }
 
-      this.body = {
+      ctx.body = {
         code: 0
       };
     }
 
-    yield next;
+    await next();
   });
 
 export default router;

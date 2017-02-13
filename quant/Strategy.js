@@ -48,7 +48,7 @@ class Strategy {
       // await this.buy(price);
     }
     else {
-      // this.logInfo('ON ORDER', price);
+      this.logInfo('ON ORDER', price);
       // await this.sell(price);
       // await this.buy(price);
     }
