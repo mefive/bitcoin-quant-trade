@@ -1,6 +1,7 @@
 import _ from 'lodash';
 
-import Order from '../models/Order';
+import OrderModel from '../models/Order';
+import Order from './Order';
 
 class UserInfo {
   static defaultData = {
@@ -20,12 +21,19 @@ class UserInfo {
     },
     name: '',
     uid: 0,
-    simulate: false
+    simulate: false,
+    backTesting: false
   }
 
   constructor(data = {}, Model) {
     this.data = _.defaultsDeep(data, UserInfo.defaultData);
     this.Model = Model;
+
+    if (this.data.backTesting) {
+      this.orders = [];
+      this.data.asset.total = 10000;
+      this.data.free.cny = 10000;
+    }
   }
 
   update(data = {}) {
@@ -113,11 +121,18 @@ class UserInfo {
 
     const { name, uid } = user;
 
-    const order = new Order({
-      name, uid, price, amount, ts: +(new Date())
-    });
+    if (user.backTesting) {
+      this.orders.push(new Order({
+        name, uid, price, amount, ts: +(new Date())
+      }));
+    }
+    else {
+      const order = new OrderModel({
+        name, uid, price, amount, ts: +(new Date())
+      });
 
-    await order.save();
+      await order.save();
+    }
   }
 }
 

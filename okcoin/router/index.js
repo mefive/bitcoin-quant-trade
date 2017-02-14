@@ -1,10 +1,13 @@
 import KoaRouter from 'koa-router';
 import queryString from 'query-string';
 
-import User from '../models/User';
+import UserModel from '../models/User';
 import SimulateUserInfo from '../models/SimulateUserInfo';
+import UserInfo from '../entities/UserInfo';
 
 import Stock from '../rest/Stock';
+
+import Strategy from '../../quant/Strategy';
 
 const router = new KoaRouter();
 
@@ -14,7 +17,7 @@ router
     const uid = ctx.cookies.get('uid');
 
     if (uid) {
-      let user = await User.findById(uid);
+      let user = await UserModel.findById(uid);
 
       user = user.toObject();
 
@@ -49,7 +52,7 @@ router
     const uid = ctx.cookies.get('uid');
 
     if (uid) {
-      let user = await User.findById(uid);
+      let user = await UserModel.findById(uid);
 
       user = user.toObject();
 
@@ -97,7 +100,7 @@ router
 
     const { name, password } = params;
 
-    let user = await User.findOne({ name });
+    let user = await UserModel.findOne({ name });
 
     if (user) {
       if (user.password === password) {
@@ -136,7 +139,7 @@ router
 
     const { name, password, apiKey, secretKey, simulate } = params;
 
-    let user = await User.findOne({ name });
+    let user = await UserModel.findOne({ name });
 
     if (user) {
       ctx.body = {
@@ -145,7 +148,7 @@ router
       }
     }
     else {
-      user = new User({ name, password, apiKey, secretKey, simulate });
+      user = new UserModel({ name, password, apiKey, secretKey, simulate });
 
       const stock = new Stock(user);
 
@@ -176,6 +179,28 @@ router
         code: 0
       };
     }
+
+    await next();
+  })
+
+  .get('/api/backTesting', async (ctx, next) => {
+    const userInfo = new UserInfo({
+      name: 'backTesting',
+      backTesting: true,
+      simulate: true
+    });
+
+    const stock = new Stock({
+      apiKey: 'fake',
+      secretKey: 'fake'
+    });
+
+    const kline = await stock.getKLine({ size: 2000 });
+
+    ctx.body = {
+      code: 0,
+      data: kline
+    };
 
     await next();
   });

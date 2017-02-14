@@ -34,7 +34,7 @@ class Stock {
     return new Ticker(ticker);
   }
 
-  async getKLine(type = '5min', start) {
+  async getKLine({ type = '5min', start, size = 50 } = {}) {
     let since;
 
     if (start) {
@@ -43,7 +43,7 @@ class Stock {
 
     const data = await this.restRequest.get(
       K_LINE,
-      { symbol: 'btc_cny', type, since, size: 50 }
+      { symbol: 'btc_cny', type, since, size }
     );
 
     return data.map(k => k[4]);
