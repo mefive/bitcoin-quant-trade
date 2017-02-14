@@ -10,7 +10,7 @@ class Order {
   }
 
   constructor(data) {
-    this.data = defaultsDeep(data, Ticker.defaultData);
+    this.data = defaultsDeep(data, Order.defaultData);
   }
 }
 

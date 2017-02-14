@@ -20,24 +20,27 @@ function getMean(data = [], points = 0, offset = 0) {
 }
 
 class Strategy {
-  constructor(user) {
+  constructor(user, { slow = 30, fast = 7, opposite = false } = {}) {
     // 是否是模拟账户
     this.user = user;
+    this.slow = slow;
+    this.fast = fast;
+    this.opposite = opposite;
   }
 
   async run(data, price, lastOrder) {
     const { length } = data;
 
     // 当前均值
-    const meanFast = this.meanFast = getMean(data, 7);
-    const meanSlow = this.meanSlow = getMean(data, 30);
+    const meanFast = this.meanFast = getMean(data, this.fast);
+    const meanSlow = this.meanSlow = getMean(data, this.slow);
 
     // 上一个均值
-    const lastMeanFast = this.lastMeanFast = getMean(data, 7, -1)
-    const lastMeanSlow = this.lastMeanSlow = getMean(data, 30, -1);
+    const lastMeanFast = this.lastMeanFast = getMean(data, this.fast, -1)
+    const lastMeanSlow = this.lastMeanSlow = getMean(data, this.slow, -1);
 
     // 止损
-    if (lastOrder && price < _.round(_.multiply(lastOrder.price, 0.9), 2)) {
+    if (lastOrder && price < _.round(_.multiply(lastOrder.price, 0.96), 2)) {
       await this.sell(price);
       console.log('sell by cut loss');
       return;
@@ -45,16 +48,24 @@ class Strategy {
 
     // 快 下击穿 慢 ，买
     if (lastMeanFast < lastMeanSlow && meanFast >= meanSlow) {
-      // await this.buy(price);
-      await this.sell(price);
+      if (this.opposite) {
+        await this.sell(price);
+      }
+      else {
+        await this.buy(price);
+      }
     }
     // 快 上击穿 慢，卖
     else if (lastMeanFast > lastMeanSlow && meanFast <= meanSlow) {
-      // await this.sell(price);
-      await this.buy(price);
+      if (this.opposite) {
+        await this.buy(price);
+      }
+      else {
+        await this.sell(price);
+      }
     }
     else {
-      this.logInfo('ON ORDER', price);
+      // this.logInfo('ON ORDER', price);
       // await this.sell(price);
       // await this.buy(price);
     }

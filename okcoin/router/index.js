@@ -1,5 +1,6 @@
 import KoaRouter from 'koa-router';
 import queryString from 'query-string';
+import _ from 'lodash';
 
 import UserModel from '../models/User';
 import SimulateUserInfo from '../models/SimulateUserInfo';
@@ -190,19 +191,46 @@ router
       simulate: true
     });
 
+    const fast = 7;
+    const slow = 30;
+    const type = '1min';
+    const opposite = true;
+
+    const strategy = new Strategy(userInfo, { fast, slow, opposite });
+
     const stock = new Stock({
       apiKey: 'fake',
       secretKey: 'fake'
     });
 
-    const kline = await stock.getKLine({ size: 2000 });
+    const kline = await stock.getKLine({ type, size: 2000 });
+
+    const { length } = kline;
+
+    for (let i = 0; i < length - 31; i++) {
+      const { orders } = userInfo;
+      const lastOrder = orders[orders.length - 1];
+
+      const data = kline.slice(i, i + 31);
+
+      await strategy.run(data, data[data.length - 1], lastOrder);
+    }
+
+    const profit = _.divide(
+      _.subtract(userInfo.data.asset.total, 10000),
+      10000
+    );
+
+    await next();
+
+    console.log(`回测 ${type} , ${length} 个点`);
+    console.log(`fast: ${fast}, slow: ${slow}${opposite ? ' , 反向' : ''}`);
+    console.log(`收益 ${profit * 100}%`);
 
     ctx.body = {
       code: 0,
-      data: kline
+      data: `收益 ${profit * 100}%`
     };
-
-    await next();
   });
 
 export default router;

@@ -41,6 +41,10 @@ class UserInfo {
   }
 
   async save() {
+    if (this.data.backTesting) {
+      return;
+    }
+
     const { uid } = this.data;
     if (!uid) {
       await (new this.Model(this.data)).save();
