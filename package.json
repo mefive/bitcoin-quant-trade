@@ -28,6 +28,7 @@
     "request-promise": "^4.1.1",
     "sleep-promise": "^2.0.0",
     "socket.io": "^1.7.2",
+    "technicalindicators": "^0.2.17",
     "ubique": "^0.5.1"
   },
   "devDependencies": {

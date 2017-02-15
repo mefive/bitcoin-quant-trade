@@ -1,43 +1,43 @@
 import _ from 'lodash';
 import ubique from 'ubique';
 import moment from 'moment';
+import 'technicalindicators';
 
-function getMean(data = [], points = 0, offset = 0) {
-  if (offset === 0) {
-    return _.round(
-      _.mean(data.slice(-points)),
-      2
-    );
-  }
-  else {
-    const { length } = data;
-
-    return _.round(
-      _.mean(data.slice(length - (points - offset), length - 1)),
-      2
-    );
-  }
+// 检查收益是否高于手续费
+function checkCost(price, lastPrice) {
+  return _.subtract(price, _.multiply(lastPrice, 0.002))
+    > lastPrice;
 }
 
 class Strategy {
-  constructor(user, { slow = 30, fast = 7, opposite = false } = {}) {
-    // 是否是模拟账户
+  constructor(
+    user,
+    {
+      slowPeriod = 30, // 慢均线周期
+      fastPeriod = 7, // 快均线周期
+      opposite = false // 是否反向操作
+    } = {}
+  ) {
     this.user = user;
-    this.slow = slow;
-    this.fast = fast;
+    this.slowPeriod = slowPeriod;
+    this.fastPeriod = fastPeriod;
     this.opposite = opposite;
   }
 
   async run(data, price, lastOrder) {
     const { length } = data;
 
-    // 当前均值
-    const meanFast = this.meanFast = getMean(data, this.fast);
-    const meanSlow = this.meanSlow = getMean(data, this.slow);
+    // 计算移动平均线
+    const meanFastList = SMA.calculate({ period: this.fastPeriod, values: data });
+    const meanSlowList = SMA.calculate({ period: this.slowPeriod, values: data });
 
-    // 上一个均值
-    const lastMeanFast = this.lastMeanFast = getMean(data, this.fast, -1)
-    const lastMeanSlow = this.lastMeanSlow = getMean(data, this.slow, -1);
+    // 当前均线值
+    const meanFast = this.meanFast = meanFastList.slice(-1)[0];
+    const meanSlow = this.meanSlow = meanSlowList.slice(-1)[0];
+
+    // 上一个均线值
+    const lastMeanFast = this.lastMeanFast = meanFastList.slice(-2)[0];
+    const lastMeanSlow = this.lastMeanSlow = meanSlowList.slice(-2)[0];
 
     // 止损
     if (lastOrder && price < _.round(_.multiply(lastOrder.price, 0.96), 2)) {
@@ -46,22 +46,26 @@ class Strategy {
       return;
     }
 
-    // 快 下击穿 慢 ，买
+    // 快均线 下击穿 慢均线 ，买
     if (lastMeanFast < lastMeanSlow && meanFast >= meanSlow) {
       if (this.opposite) {
-        await this.sell(price);
+        if (lastOrder && checkCost(price, lastOrder.price)) {
+          await this.sell(price);
+        }
       }
       else {
         await this.buy(price);
       }
     }
-    // 快 上击穿 慢，卖
+    // 快均线 上击穿 慢均线，卖
     else if (lastMeanFast > lastMeanSlow && meanFast <= meanSlow) {
       if (this.opposite) {
         await this.buy(price);
       }
       else {
-        await this.sell(price);
+        if (lastOrder && checkCost(price, lastOrder.price)) {
+          await this.sell(price);
+        }
       }
     }
     else {
@@ -92,7 +96,7 @@ class Strategy {
   }
 
   logInfo(trade, price) {
-    console.log('=======');
+    console.log('=====================');
     if (this.user) {
       console.log(this.user.data.free, this.user.data.asset);
     }
@@ -111,7 +115,7 @@ class Strategy {
 
     console.log('');
 
-    console.log('=======\r\n');
+    console.log('=====================\r\n');
   }
 }
 

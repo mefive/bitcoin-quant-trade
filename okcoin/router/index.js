@@ -191,10 +191,10 @@ router
       simulate: true
     });
 
-    const fast = 7;
+    const fast = 10;
     const slow = 30;
-    const type = '1min';
-    const opposite = true;
+    const type = '30min';
+    const opposite = false;
 
     const strategy = new Strategy(userInfo, { fast, slow, opposite });
 
@@ -213,7 +213,7 @@ router
 
       const data = kline.slice(i, i + 31);
 
-      await strategy.run(data, data[data.length - 1], lastOrder);
+      await strategy.run(data, data[data.length - 1], lastOrder && lastOrder.data);
     }
 
     const profit = _.divide(
