@@ -1,6 +1,7 @@
 import KoaRouter from 'koa-router';
 import queryString from 'query-string';
 import _ from 'lodash';
+import 'technicalindicators';
 
 import UserModel from '../models/User';
 import SimulateUserInfo from '../models/SimulateUserInfo';
@@ -191,30 +192,51 @@ router
       simulate: true
     });
 
-    const fast = 10;
-    const slow = 30;
+    const fastPeriod = 10;
+    const slowPeriod = 30;
     const type = '30min';
     const opposite = false;
 
-    const strategy = new Strategy(userInfo, { fast, slow, opposite });
+    const strategy = new Strategy(userInfo, { fastPeriod, slowPeriod, opposite });
 
     const stock = new Stock({
       apiKey: 'fake',
       secretKey: 'fake'
     });
 
-    const kline = await stock.getKLine({ type, size: 2000 });
+    const kLine = await stock.getKLine({ type, size: 2000 });
+    
+    const fastSMALine = global.SMA.calculate({ period: fastPeriod, values: kLine });
+    const slowSMALine = global.SMA.calculate({ period: slowPeriod, values: kLine });
 
-    const { length } = kline;
+    const { length: slowLength } = slowSMALine;
+    const fastOffset = fastSMALine.length - slowLength;
+    const kLineOffset = kLine.length - slowLength;
 
-    for (let i = 0; i < length - 31; i++) {
+    for (let i = 1; i < slowLength; i++) {
       const { orders } = userInfo;
       const lastOrder = orders[orders.length - 1];
 
-      const data = kline.slice(i, i + 31);
+      const slowSMA = slowSMALine[i];
+      const fastSMA = fastSMALine[i + fastOffset];
+      const price = kLine[i + kLineOffset];
 
-      await strategy.run(data, data[data.length - 1], lastOrder && lastOrder.data);
+      await strategy.run({
+        slowSMALine: slowSMALine.slice(0, i),
+        fastSMALine: fastSMALine.slice(fastOffset, i + fastOffset),
+        price: kLine[i + kLineOffset],
+        lastOrder: lastOrder && lastOrder.data
+      });
     }
+
+    // for (let i = 0; i < length - 31; i++) {
+    //   const { orders } = userInfo;
+    //   const lastOrder = orders[orders.length - 1];
+
+    //   const data = kLine.slice(i, i + 31);
+
+    //   await strategy.run(data, data[data.length - 1], lastOrder && lastOrder.data);
+    // }
 
     const profit = _.divide(
       _.subtract(userInfo.data.asset.total, 10000),
@@ -223,8 +245,8 @@ router
 
     await next();
 
-    console.log(`回测 ${type} , ${length} 个点`);
-    console.log(`fast: ${fast}, slow: ${slow}${opposite ? ' , 反向' : ''}`);
+    console.log(`回测 ${type} , ${kLine.length} 个点`);
+    console.log(`fastPeriod: ${fastPeriod}, slowPeriod: ${slowPeriod}${opposite ? ' , 反向' : ''}`);
     console.log(`收益 ${profit * 100}%`);
 
     ctx.body = {

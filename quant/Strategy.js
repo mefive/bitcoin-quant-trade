@@ -13,31 +13,27 @@ class Strategy {
   constructor(
     user,
     {
-      slowPeriod = 30, // 慢均线周期
-      fastPeriod = 7, // 快均线周期
       opposite = false // 是否反向操作
     } = {}
   ) {
     this.user = user;
-    this.slowPeriod = slowPeriod;
-    this.fastPeriod = fastPeriod;
     this.opposite = opposite;
   }
 
-  async run(data, price, lastOrder) {
-    const { length } = data;
+  async run({ fastSMALine, slowSMALine, price, lastOrder }) {
+    // const { length } = data;
 
     // 计算移动平均线
-    const meanFastList = SMA.calculate({ period: this.fastPeriod, values: data });
-    const meanSlowList = SMA.calculate({ period: this.slowPeriod, values: data });
+    // const meanFastList = SMA.calculate({ period: this.fastPeriod, values: data });
+    // const meanSlowList = SMA.calculate({ period: this.slowPeriod, values: data });
 
     // 当前均线值
-    const meanFast = this.meanFast = meanFastList.slice(-1)[0];
-    const meanSlow = this.meanSlow = meanSlowList.slice(-1)[0];
+    const meanFast = this.meanFast = fastSMALine.slice(-1)[0];
+    const meanSlow = this.meanSlow = slowSMALine.slice(-1)[0];
 
     // 上一个均线值
-    const lastMeanFast = this.lastMeanFast = meanFastList.slice(-2)[0];
-    const lastMeanSlow = this.lastMeanSlow = meanSlowList.slice(-2)[0];
+    const lastMeanFast = this.lastMeanFast = fastSMALine.slice(-2)[0];
+    const lastMeanSlow = this.lastMeanSlow = slowSMALine.slice(-2)[0];
 
     // 止损
     if (lastOrder && price < _.round(_.multiply(lastOrder.price, 0.96), 2)) {

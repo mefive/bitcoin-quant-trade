@@ -101,6 +101,8 @@ function init() {
     catch (e) {
       const { name, statusCode, errorCode, message } = e;
 
+      console.log(e);
+
       const code = errorCode || statusCode || 500;
 
       ctx.body = { code, name, message };
