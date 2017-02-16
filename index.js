@@ -5,6 +5,7 @@ import socketIo from 'socket.io';
 import Stock from './okcoin/rest/Stock';
 import sleep from 'sleep-promise';
 import mongoose from 'mongoose';
+import 'technicalindicators';
 
 import okcoinRouter from './okcoin/router';
 import UserInfo from './okcoin/entities/UserInfo';
@@ -65,13 +66,35 @@ async function loop() {
             }
           }
 
-          const kLine = await stock.getKLine();
+          const fastPeriod = 10;
+          const slowPeriod = 30;
+          const type = '30min';
+          const opposite = false;
 
-          const strategy = new Strategy(userInfo);
+          const kLine = await stock.getKLine({
+            type, size: 2000
+          });
+
+          const fastSMALine = global.SMA.calculate({ period: fastPeriod, values: kLine });
+          const slowSMALine = global.SMA.calculate({ period: slowPeriod, values: kLine });
+
+          const { length: slowLength } = slowSMALine;
+          const fastOffset = fastSMALine.length - slowLength;
+          const kLineOffset = kLine.length - slowLength;
+
+          const strategy = new Strategy(
+            userInfo,
+            { fastPeriod, slowPeriod, opposite, log: true }
+          );
 
           const lastOrder = (await Order.find({ uid: _id }).sort({ ts: -1 }))[0]//[0];
 
-          await strategy.run(kLine, ticker.data.last, lastOrder);
+          await strategy.run({
+            slowSMALine,
+            fastSMALine,
+            price: ticker.data.last,
+            lastOrder: lastOrder && lastOrder.data
+          });
 
           const socket = sockets[_id];
 
@@ -130,7 +153,7 @@ function init() {
     }
   });
 
-  // loop();
+  loop();
 
   server.listen(3000, () => console.log('listening on 3000'));
 }
