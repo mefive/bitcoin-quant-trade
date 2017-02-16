@@ -63,7 +63,11 @@ class UserInfo {
     let amount = _.round(_.divide(cash, price), 10);
 
     if (amount < 0.01) {
-      throw 'money not enough to buy';
+      throw {
+        type: 'trade',
+        message: 'money not enough to buy'
+      };
+
       return;
     }
 
@@ -94,7 +98,11 @@ class UserInfo {
     const cash = data.free.cny;
 
     if (amount < 0.01) {
-      throw 'btc not enough to sell';
+      throw {
+        type: 'trade',
+        message: 'btc not enough to sell'
+      };
+
       return;
     }
 

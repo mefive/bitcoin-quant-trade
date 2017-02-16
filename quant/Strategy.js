@@ -13,11 +13,13 @@ class Strategy {
   constructor(
     user,
     {
-      opposite = false // 是否反向操作
+      opposite = false, // 是否反向操作,
+      log = false
     } = {}
   ) {
     this.user = user;
     this.opposite = opposite;
+    this.log = log;
   }
 
   async run({ fastSMALine, slowSMALine, price, lastOrder }) {
@@ -36,9 +38,13 @@ class Strategy {
     const lastMeanSlow = this.lastMeanSlow = slowSMALine.slice(-2)[0];
 
     // 止损
-    if (lastOrder && price < _.round(_.multiply(lastOrder.price, 0.96), 2)) {
+    if (lastOrder && price < _.round(_.multiply(lastOrder.price, 0.8), 2)) {
       await this.sell(price);
-      console.log('sell by cut loss');
+
+      // if (this.log) {
+        console.log('sell by cut loss');
+      // }
+
       return;
     }
 
@@ -77,7 +83,9 @@ class Strategy {
       this.logInfo('BUY', price);
     }
     catch (e) {
-      console.log(e);
+      if (this.log) {
+        console.log(e);
+      }
     }
   }
 
@@ -87,11 +95,17 @@ class Strategy {
       this.logInfo('SELL', price);
     }
     catch (e) {
-      console.log(e);
+      if (this.log) {
+        console.log(e);
+      }
     }
   }
 
   logInfo(trade, price) {
+    if (!this.log) {
+      return;
+    }
+
     console.log('=====================');
     if (this.user) {
       console.log(this.user.data.free, this.user.data.asset);

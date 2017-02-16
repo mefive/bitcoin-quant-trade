@@ -221,22 +221,21 @@ router
       const fastSMA = fastSMALine[i + fastOffset];
       const price = kLine[i + kLineOffset];
 
+      const oldTotal = userInfo.data.asset.total;
+
       await strategy.run({
         slowSMALine: slowSMALine.slice(0, i),
         fastSMALine: fastSMALine.slice(fastOffset, i + fastOffset),
         price: kLine[i + kLineOffset],
         lastOrder: lastOrder && lastOrder.data
       });
+
+      const { total } = userInfo.data.asset;
+
+      if (oldTotal !== total) {
+        console.log(`￥${_.round(total - oldTotal, 2)}`);
+      }
     }
-
-    // for (let i = 0; i < length - 31; i++) {
-    //   const { orders } = userInfo;
-    //   const lastOrder = orders[orders.length - 1];
-
-    //   const data = kLine.slice(i, i + 31);
-
-    //   await strategy.run(data, data[data.length - 1], lastOrder && lastOrder.data);
-    // }
 
     const profit = _.divide(
       _.subtract(userInfo.data.asset.total, 10000),
