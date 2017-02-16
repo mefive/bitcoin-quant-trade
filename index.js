@@ -108,7 +108,7 @@ async function loop() {
       console.log(e);
     }
 
-    await sleep(10000);
+    await sleep(60000);
   }
 }
 
