@@ -39,12 +39,7 @@ class Strategy {
 
     // 止损
     if (lastOrder && price < _.round(_.multiply(lastOrder.price, 0.8), 2)) {
-      await this.sell(price);
-
-      // if (this.log) {
-        console.log('sell by cut loss');
-      // }
-
+      await this.sell(price, 'sell by cut loss');
       return;
     }
 
@@ -89,10 +84,13 @@ class Strategy {
     }
   }
 
-  async sell(price) {
+  async sell(price, by) {
     try {
       await this.user.sellAll(price);
       this.logInfo('SELL', price);
+      if (this.log && by) {
+        console.log(by);
+      }
     }
     catch (e) {
       if (this.log) {

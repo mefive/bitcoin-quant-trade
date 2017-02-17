@@ -194,7 +194,7 @@ router
 
     const fastPeriod = 10;
     const slowPeriod = 30;
-    const type = '30min';
+    const type = '3day';
     const opposite = false;
 
     const strategy = new Strategy(userInfo, { fastPeriod, slowPeriod, opposite });
@@ -212,6 +212,9 @@ router
     const { length: slowLength } = slowSMALine;
     const fastOffset = fastSMALine.length - slowLength;
     const kLineOffset = kLine.length - slowLength;
+
+    const originalTotal = userInfo.data.asset.total;
+    console.log(`本金 ￥${originalTotal}`);
 
     for (let i = 1; i < slowLength; i++) {
       const { orders } = userInfo;
@@ -233,20 +236,22 @@ router
       const { total } = userInfo.data.asset;
 
       if (oldTotal !== total) {
-        console.log(`￥${_.round(total - oldTotal, 2)}`);
+        // const day = _.round((i - 1) * 30 / 60 / 24);
+        const day = i * 3;
+        console.log(`第 ${day} 天，￥${_.round(total - oldTotal, 2)}`);
       }
     }
 
     const profit = _.divide(
-      _.subtract(userInfo.data.asset.total, 10000),
-      10000
+      _.subtract(userInfo.data.asset.total, originalTotal),
+      originalTotal
     );
 
     await next();
 
     console.log(`回测 ${type} , ${kLine.length} 个点`);
     console.log(`fastPeriod: ${fastPeriod}, slowPeriod: ${slowPeriod}${opposite ? ' , 反向' : ''}`);
-    console.log(`收益 ${profit * 100}%`);
+    console.log(`收益 ￥${_.round(_.subtract(userInfo.data.asset.total, originalTotal))}，${profit * 100}%`);
 
     ctx.body = {
       code: 0,
