@@ -1,18 +1,18 @@
-import http from 'http';
-import Koa from 'koa';
-import bodyParser from 'koa-bodyparser';
-import socketIo from 'socket.io';
-import Stock from './okcoin/rest/Stock';
-import sleep from 'sleep-promise';
-import mongoose from 'mongoose';
-import 'technicalindicators';
+const http = require('http');
+const Koa = require('koa');
+const bodyParser = require('koa-bodyparser');
+const socketIo = require('socket.io');
+const Stock = require('./okcoin/rest/Stock');
+const sleep = require('sleep-promise');
+const mongoose = require('mongoose');
+require('technicalindicators');
 
-import okcoinRouter from './okcoin/router';
-import UserInfo from './okcoin/entities/UserInfo';
-import User from './okcoin/models/User';
-import Order from './okcoin/models/Order';
-import SimulateUserInfo from './okcoin/models/SimulateUserInfo';
-import Strategy from './quant/Strategy';
+const okcoinRouter = require('./okcoin/router');
+const UserInfo = require('./okcoin/entities/UserInfo');
+const User = require('./okcoin/models/User');
+const Order = require('./okcoin/models/Order');
+const SimulateUserInfo = require('./okcoin/models/SimulateUserInfo');
+const Strategy = require('./quant/Strategy');
 
 mongoose.Promise = global.Promise;
 const sockets = {};
@@ -49,10 +49,11 @@ async function loop() {
 
             if (userInfo) {
               userInfo = new UserInfo(
-                {
-                  ...userInfo.toObject(),
-                  simulate: true
-                },
+                Object.assign(
+                  {},
+                  userInfo.toObject(),
+                  { simulate: true }
+                ),
                 SimulateUserInfo
               );
             }

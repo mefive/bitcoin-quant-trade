@@ -1,30 +1,30 @@
-import _ from 'lodash';
+const _ = require('lodash');
 
-import OrderModel from '../models/Order';
-import Order from './Order';
+const OrderModel = require('../models/Order');
+const Order = require('./Order');
+
+const defaultData = {
+  asset: {
+    net: 0,
+    total: 0
+  },
+  free: {
+    btc: 0,
+    cny: 0,
+    ltc: 0
+  },
+  freezed: {
+    btc: 0,
+    cny: 0,
+    ltc: 0
+  },
+  name: '',
+  uid: 0,
+  simulate: false,
+  backTesting: false
+};
 
 class UserInfo {
-  static defaultData = {
-    asset: {
-      net: 0,
-      total: 0
-    },
-    free: {
-      btc: 0,
-      cny: 0,
-      ltc: 0
-    },
-    freezed: {
-      btc: 0,
-      cny: 0,
-      ltc: 0
-    },
-    name: '',
-    uid: 0,
-    simulate: false,
-    backTesting: false
-  }
-
   constructor(data = {}, Model) {
     this.data = _.defaultsDeep(data, UserInfo.defaultData);
     this.Model = Model;
@@ -148,4 +148,6 @@ class UserInfo {
   }
 }
 
-export default UserInfo;
+UserInfo.defaultData = defaultData;
+
+module.exports = UserInfo;

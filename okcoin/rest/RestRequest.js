@@ -1,6 +1,6 @@
-import requestPromise from 'request-promise';
-import md5 from 'md5';
-import queryString from 'query-string';
+const requestPromise = require('request-promise');
+const md5 = require('md5');
+const queryString = require('query-string');
 
 class RestRequest {
   constructor(apiKey, secretKey, prefix) {
@@ -34,12 +34,15 @@ class RestRequest {
     const data = await requestPromise({
       method: 'POST',
       uri: `${this.prefix}/${api}`,
-      form: {
-        ...params,
-        sign: md5(
-          `${queryString.stringify(params)}&secret_key=${this.secretKey}`
-        ).toUpperCase()
-      },
+      form: Object.assign(
+        {},
+        params,
+        {
+          sign: md5(
+            `${queryString.stringify(params)}&secret_key=${this.secretKey}`
+          ).toUpperCase()
+        }
+      ),
       json: true
     });
 
@@ -49,4 +52,4 @@ class RestRequest {
   }
 }
 
-export default RestRequest;
+module.exports = RestRequest;

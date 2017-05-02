@@ -1,7 +1,7 @@
-import _ from 'lodash';
-import ubique from 'ubique';
-import moment from 'moment';
-import 'technicalindicators';
+const _ = require('lodash');
+const ubique = require('ubique');
+const moment = require('moment');
+require('technicalindicators');
 
 // 检查收益是否高于手续费
 function checkCost(price, lastPrice) {
@@ -127,4 +127,4 @@ class Strategy {
   }
 }
 
-export default Strategy;
+module.exports = Strategy;

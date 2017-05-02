@@ -1,1 +1,1 @@
-export const STRATEGY_FIX = 'strategy_fix';
+exports.STRATEGY_FIX = 'strategy_fix';

@@ -1,6 +1,6 @@
-import RestRequest from './RestRequest';
-import Ticker from '../entities/Ticker';
-import UserInfo from '../entities/UserInfo';
+const RestRequest = require('./RestRequest');
+const Ticker = require('../entities/Ticker');
+const UserInfo = require('../entities/UserInfo');
 
 const TICKER = 'ticker.do';
 const USER_INFO = 'userinfo.do';
@@ -55,12 +55,17 @@ class Stock {
       { 'api_key': this.user.apiKey }
     );
 
-    return new UserInfo({
-      ...data.info.funds,
-      name: this.user.name,
-      uid: this.user._id
-    });
+    return new UserInfo(
+      Object.assign(
+        {},
+        data.info.funds,
+        {
+          name: this.user.name,
+          uid: this.user._id,
+        }
+      )
+    );
   }
 }
 
-export default Stock;
+module.exports = Stock;

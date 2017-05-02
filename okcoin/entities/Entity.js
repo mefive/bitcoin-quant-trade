@@ -1,6 +1,6 @@
-import isPlainObject from 'lodash/isPlainObject';
-import isArray from 'lodash/isArray';
-import defaultsDeep from 'lodash/defaultsDeep';
+const isPlainObject = require('lodash/isPlainObject');
+const isArray = require('lodash/isArray');
+const defaultsDeep = require('lodash/defaultsDeep');
 
 class Entity {
   constructor(data = {}) {
@@ -8,8 +8,6 @@ class Entity {
       key =>
         this.set(key, data[key])
     );
-
-    this.data = 
   }
 
   update(data) {
@@ -35,4 +33,4 @@ class Entity {
   }
 }
 
-export default Entity;
+module.exports = Entity;

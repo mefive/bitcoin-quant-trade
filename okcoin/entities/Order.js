@@ -1,17 +1,19 @@
-import defaultsDeep from 'lodash/defaultsDeep';
+const defaultsDeep = require('lodash/defaultsDeep');
+
+const defaultData = {
+  name: '',
+  uid: '',
+  price: 0,
+  amount: 0,
+  ts: 0
+};
 
 class Order {
-  static defaultData = {
-    name: '',
-		uid: '',
-		price: 0,
-		amount: 0,
-		ts: 0
-  }
-
   constructor(data) {
     this.data = defaultsDeep(data, Order.defaultData);
   }
 }
 
-export default Order;
+Order.defaultData = defaultData;
+
+module.exports = Order;

@@ -1,15 +1,15 @@
-import KoaRouter from 'koa-router';
-import queryString from 'query-string';
-import _ from 'lodash';
-import 'technicalindicators';
+const KoaRouter = require('koa-router');
+const queryString = require('query-string');
+const _ = require('lodash');
+require('technicalindicators');
 
-import UserModel from '../models/User';
-import SimulateUserInfo from '../models/SimulateUserInfo';
-import UserInfo from '../entities/UserInfo';
+const UserModel = require('../models/User');
+const SimulateUserInfo = require('../models/SimulateUserInfo');
+const UserInfo = require('../entities/UserInfo');
 
-import Stock from '../rest/Stock';
+const Stock = require('../rest/Stock');
 
-import Strategy from '../../quant/Strategy';
+const Strategy = require('../../quant/Strategy');
 
 const router = new KoaRouter();
 
@@ -26,10 +26,13 @@ router
       if (user) {
         ctx.body = {
           code: 0,
-          data: {
-            ...user,
-            uid: user._id
-          }
+          data: Object.assign(
+            {},
+            user,
+            {
+              uid: user._id
+            }
+          )
         };
       }
       else {
@@ -66,10 +69,13 @@ router
 
           ctx.body = {
             code: 0,
-            data: {
-              ...user,
-              uid: user._id
-            }
+            data: Object.assign(
+              {},
+              user,
+              {
+                uid: user._id
+              }
+            )
           };
         }
         catch (e) {
@@ -112,10 +118,11 @@ router
 
         ctx.body = {
           code: 0,
-          data: {
-            ...user,
-            uid: user._id
-          }
+          data: Object.assign(
+            {},
+            user,
+            { uid: user._id }
+          )
         };
       }
       else {
@@ -194,7 +201,7 @@ router
 
     const fastPeriod = 10;
     const slowPeriod = 30;
-    const type = '3day';
+    const type = '30min';
     const opposite = false;
 
     const strategy = new Strategy(userInfo, { fastPeriod, slowPeriod, opposite });
@@ -236,8 +243,8 @@ router
       const { total } = userInfo.data.asset;
 
       if (oldTotal !== total) {
-        // const day = _.round((i - 1) * 30 / 60 / 24);
-        const day = i * 3;
+        const day = _.round((i - 1) * 30 / 60 / 24);
+        // const day = i * 3;
         console.log(`第 ${day} 天，￥${_.round(total - oldTotal, 2)}`);
       }
     }
@@ -259,4 +266,4 @@ router
     };
   });
 
-export default router;
+module.exports = router;

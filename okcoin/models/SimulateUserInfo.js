@@ -1,6 +1,6 @@
-import mongoose from 'mongoose';
+const mongoose = require('mongoose');
 
-export default mongoose.model('SimulateUserInfo', new mongoose.Schema({
+module.exports = mongoose.model('SimulateUserInfo', new mongoose.Schema({
   asset: {
     total: {
       type: Number,
